@@ -4,7 +4,7 @@ import os, json
 # Flask Configuration #
 #######################
 
-DEBUG = False
+DEBUG = True if os.environ.get('SSO_DEBUG', 'false') == 'true' else False
 IP = os.environ.get('SSO_IP', '0.0.0.0')
 PORT = int(os.environ.get('SSO_PORT', '8080'))
 SERVER_NAME = os.environ.get('SSO_SERVER_NAME', 'discourse-sso.csh.rit.edu')

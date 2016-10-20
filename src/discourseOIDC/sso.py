@@ -84,7 +84,7 @@ def payload_check():
         abort(400)
 
     # Decode the payload and store in session
-    decoded_msg = base64.b64decode(payload)
+    decoded_msg = base64.b64decode(payload).decode('utf-8')
     session['nonce'] = decoded_msg
 
     # Redirect to authorization endpoint
@@ -142,7 +142,7 @@ def user_auth():
     app.logger.debug('Query string to return: %s', query)
 
     # Encode response
-    query_b64 = base64.b64encode(query)
+    query_b64 = base64.b64encode(query.encode('utf-8'))
     app.logger.debug('Base64 query string to return: %s', query_b64)
 
     # Build URL-safe response
@@ -151,7 +151,7 @@ def user_auth():
 
     # Generate signature for response
     sig = hmac.new(app.config.get('DISCOURSE_SECRET_KEY').encode('utf-8'),
-                   query_b64.encode('utf-8'),
+                   query_b64,
                    hashlib.sha256).hexdigest()
     app.logger.debug('Signature: %s', sig)
 

@@ -2,7 +2,7 @@
 # Flask Configuration #
 #######################
 
-DEBUG = False
+DEBUG = True
 IP = '0.0.0.0'
 PORT = 8080
 SERVER_NAME = 'localhost:8080'
