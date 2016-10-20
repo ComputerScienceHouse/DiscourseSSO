@@ -19,19 +19,40 @@ The configuration file is defined with the variable "DISCOURSE_SSO_CONFIG",
 for the most significant values look at the sso/default.py file
 """
 
+from flask import abort, Flask, redirect, request, url_for, session
+from flask_pyoidc.flask_pyoidc import OIDCAuthentication
 
-from flask import abort, Flask, redirect, render_template, request, url_for, \
-    session
-
+import os
 import base64
 import hashlib
 import hmac
-import urllib
+import requests
+from urllib.parse import quote
+
+# Disable SSL certificate verification warning
+requests.packages.urllib3.disable_warnings()
 
 app = Flask(__name__)
+
+# Load configuration
 app.config.from_object('discourseSSO.default.Config')
-app.config.from_pyfile('config.py')
+
+if os.path.exists(os.path.join(os.getcwd(), "config.py")):
+    app.config.from_pyfile(os.path.join(os.getcwd(), "config.py"))
+else:
+    app.config.from_pyfile(os.path.join(os.getcwd(), "config.env.py"))
+
 app.config.from_envvar('DISCOURSE_SSO_CONFIG', True)
+
+# Initialize OpenID Connect extension
+auth = OIDCAuthentication(app,
+                          issuer=app.config['OIDC_ISSUER'],
+                          client_registration_info=app.config['OIDC_CLIENT_CONFIG'])
+
+
+@app.route('/')
+def index():
+    return redirect(app.config.get('DISCOURSE_URL'), 302)
 
 
 @app.route('/sso/login')
@@ -41,91 +62,106 @@ def payload_check():
     correct redirect to the authentication page
     :return: The redirection page to the authentication page
     """
+
+    # Get payload and signature from Discourse request
     payload = request.args.get('sso', '')
     signature = request.args.get('sig', '')
 
-    app.logger.debug('Request to login with payload="%s" signature="%s"',
-                     payload, signature)
     if not payload or not signature:
         abort(400)
 
-    app.logger.debug('Session Secret Key: %s',
-                     app.secret_key)
-    app.logger.debug('SSO Secret Key: %s',
-                     app.config.get('DISCOURSE_SECRET_KEY'))
-    dig = hmac.new(
-        app.config.get('DISCOURSE_SECRET_KEY'),
-        payload,
-        hashlib.sha256
-    ).hexdigest()
+    app.logger.debug('Request to login with payload="%s" signature="%s"', payload, signature)
+    app.logger.debug('Session Secret Key: %s', app.secret_key)
+    app.logger.debug('SSO Secret Key: %s', app.config.get('DISCOURSE_SECRET_KEY'))
+
+    # Calculate and compare request signature
+    dig = hmac.new(app.config.get('DISCOURSE_SECRET_KEY', ''), payload, hashlib.sha256).hexdigest()
     app.logger.debug('Calculated hash: %s', dig)
+
     if dig != signature:
         abort(400)
-    decoded_msg = base64.decodestring(payload)
+
+    # Decode the payload and store in session
+    decoded_msg = base64.b64decode(payload)
     session['nonce'] = decoded_msg
-    return redirect(url_for('user_authz'))
+
+    # Redirect to authorization endpoint
+    return redirect(url_for('user_auth'))
 
 
 @app.route('/sso/auth')
-def user_authz():
+@auth.oidc_auth
+def user_auth():
     """
     Read the user attributes provided by the application server (generally
     it is apache httpd) as environment variables and create the payload to
     send to discourse
     :return: The redirection page to Discourse
     """
-    attribute_map = app.config.get('DISCOURSE_USER_MAP')
-    email = request.environ.get(attribute_map['email'])
-    external_id = request.environ.get(attribute_map['external_id'])
-    if not (email and external_id):
+
+    # Check to make sure we have a valid session
+    if 'nonce' not in session:
         abort(403)
+
+    attribute_map = app.config.get('DISCOURSE_USER_MAP')
+
+    # External ID
+    external_id = session['userinfo'].get(attribute_map['external_id'], '')
+    if not external_id:
+        abort(403)
+
+    # Display name
     name_list = []
     for name_to_map in attribute_map['name']:
         if request.environ.get(name_to_map):
             name_list.append(request.environ.get(name_to_map))
     name = ' '.join(name_list)
-    if request.environ.get(attribute_map['username']):
-        username = request.environ.get(attribute_map['username'])
-    else:
-        username = (name.replace(' ', '') +
-                    "_" +
-                    hashlib.md5(email).hexdigest()[0:4]
-                    )
 
-    app.logger.debug('Authenticating "%s" with username "%s" and email "%s"',
-                     name, username, email)
-    if 'nonce' not in session:
+    # Username
+    username = session['userinfo'].get(attribute_map['username'], '')
+    if not username:
+        username = (name.replace(' ', '') + "_" + external_id[0:4])
+
+    # Email
+    email = session['userinfo'].get(attribute_map['email'], '')
+    if app.config.get('SSO_EMAIL_OVERRIDE', False):
+        email = username + "@" + session['userinfo'].get('SSO_EMAIL_OVERRIDE_DOMAIN')
+    if not email:
         abort(403)
+
+    app.logger.debug('Authenticating "%s" with username "%s" and email "%s"', name, username, email)
+
+    # Build response
     query = (session['nonce'] +
              '&name=' + name +
              '&username=' + username +
-             '&email=' + urllib.quote(email) +
+             '&email=' + quote(email) +
              '&external_id=' + external_id)
     app.logger.debug('Query string to return: %s', query)
-    query_b64 = base64.encodestring(query)
+
+    # Encode response
+    query_b64 = base64.b64encode(query)
     app.logger.debug('Base64 query string to return: %s', query_b64)
-    query_urlenc = urllib.quote(query_b64)
+
+    # Build URL-safe response
+    query_urlenc = quote(query_b64)
     app.logger.debug('URLEnc query string to return: %s', query_urlenc)
-    sig = hmac.new(
-        app.config.get('DISCOURSE_SECRET_KEY'),
-        query_b64,
-        hashlib.sha256
-    ).hexdigest()
+
+    # Generate signature for response
+    sig = hmac.new(app.config.get('DISCOURSE_SECRET_KEY'), query_b64, hashlib.sha256).hexdigest()
     app.logger.debug('Signature: %s', sig)
+
+    # Build redirect URL
     redirect_url = (app.config.get('DISCOURSE_URL') +
                     '/session/sso_login?'
                     'sso=' + query_urlenc +
                     '&sig=' + sig)
 
+    # Redirect back to Discourse
     return redirect(redirect_url)
 
 
-@app.errorhandler(403)
-def attribuete_not_provided(error):
-    """
-    Render a custom error page in case the IdP authenticate the user but does
-    not provide the requested attributes
-
-    :type error: object
-    """
-    return render_template('403.html'), 403
+@app.route('/logout')
+@auth.oidc_logout
+def logout():
+    return redirect(url_for('index'), 302)

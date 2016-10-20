@@ -14,10 +14,11 @@
 #    under the License.
 
 """
-SSO Application tests
+SSO Application
 """
 
-from discourseSSO import sso
+from discourseSSO.sso import app
+application = app
 
 if __name__ == '__main__':
-    sso.app.run()
+    app.run()

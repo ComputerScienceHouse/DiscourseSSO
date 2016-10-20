@@ -54,10 +54,12 @@ setup(
         'Topic :: Utilities',
     ],
     keywords=[
-        'SAML', 'discourse'
+        'OpenID Connect', 'oidc', 'discourse'
     ],
     install_requires=[
-        'Flask>=0.10.1'
+        'Flask>=0.10.1',
+        'Flask-pyoidc>=1.0.0',
+        'gunicorn'
     ],
     extras_require={
         # eg: 'rst': ['docutils>=0.11'],
