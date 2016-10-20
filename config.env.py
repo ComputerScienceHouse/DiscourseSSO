@@ -7,7 +7,7 @@ import os, json
 DEBUG = False
 IP = os.environ.get('SSO_IP', '0.0.0.0')
 PORT = int(os.environ.get('SSO_PORT', '8080'))
-SERVER_NAME = os.environ.get('SSO_SERVER_NAME', 'discourse-sso.csh.rit.edu:443')
+SERVER_NAME = os.environ.get('SSO_SERVER_NAME', 'discourse-sso.csh.rit.edu')
 SECRET_KEY = os.environ.get('SSO_SECRET_KEY', 'thisisntverysecure')
 
 ################################

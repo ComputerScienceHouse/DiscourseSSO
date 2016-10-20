@@ -5,7 +5,7 @@
 DEBUG = False
 IP = '0.0.0.0'
 PORT = 8080
-SERVER_NAME = localhost:8080
+SERVER_NAME = 'localhost:8080'
 SECRET_KEY = 'thisisntverysecure'
 
 ################################

@@ -35,7 +35,7 @@ requests.packages.urllib3.disable_warnings()
 app = Flask(__name__)
 
 # Load configuration
-app.config.from_object('discourseSSO.default.Config')
+app.config.from_object('discourseOIDC.default.Config')
 
 if os.path.exists(os.path.join(os.getcwd(), "config.py")):
     app.config.from_pyfile(os.path.join(os.getcwd(), "config.py"))

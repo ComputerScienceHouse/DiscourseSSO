@@ -21,14 +21,14 @@ def read(*names, **kwargs):
 
 
 setup(
-    name='DiscourseSSO',
+    name='DiscourseOIDC',
     version='0.1.0',
     license='Apache2.0',
     description='SSO Discourse Application to allow SAML authentication',
-    long_description='%s\n%s' % (read('README.rst'), re.sub(':obj:`~?(.*?)`', r'``\1``', read('CHANGELOG.rst'))),
-    author='Marco Fargetta',
-    author_email='marco.fargetta@ct.infn.it',
-    url='https://github.com/fmarco76/DiscourseSSO',
+    long_description='%s' % read('README.md'),
+    author='Steven Mirabito & Marco Fargetta',
+    author_email='smirabito@csh.rit.edu',
+    url='https://github.com/ComputerScienceHouse/DiscourseOIDC',
 #    packages=find_packages(exclude=['tests*']),
     packages=find_packages('src'),
     package_dir={'': 'src'},
@@ -44,8 +44,6 @@ setup(
         'Operating System :: POSIX',
         'Operating System :: Microsoft :: Windows',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',

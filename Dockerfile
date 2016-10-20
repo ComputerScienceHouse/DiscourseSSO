@@ -1,4 +1,4 @@
-# computersciencehouse/discourse-sso
+# computersciencehouse/discourse-oidc
 FROM python:3-alpine
 MAINTAINER Steven Mirabito (smirabito@csh.rit.edu)
 
@@ -25,4 +25,4 @@ USER sso
 EXPOSE 8080
 
 # Run application with Gunicorn
-CMD gunicorn --workers=2 --bind ${SSO_SERVER_IP:-0.0.0.0}:${SSO_SERVER_PORT:-8080} DiscourseSSO
+CMD gunicorn --workers=2 --bind ${SSO_SERVER_IP:-0.0.0.0}:${SSO_SERVER_PORT:-8080} DiscourseOIDC

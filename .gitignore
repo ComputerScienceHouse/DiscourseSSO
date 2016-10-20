@@ -58,3 +58,6 @@ target/
 
 # PyCharm
 .idea/
+
+# Sensitive project files
+config.py

@@ -17,7 +17,7 @@
 SSO Application
 """
 
-from discourseSSO.sso import app
+from discourseOIDC.sso import app
 application = app
 
 if __name__ == '__main__':

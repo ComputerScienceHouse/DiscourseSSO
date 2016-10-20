@@ -16,10 +16,7 @@ include README.rst
 
 include requirements.txt
 include tox.ini .travis.yml .scrutinizer.yml
-include DiscourseSSO.wsgi
 
-include DiscourseSSO.py
-
-recursive-include src/templates/ *.html
+include DiscourseOIDC.py
 
 global-exclude *.py[co] __pycache__ *.so *.pyd
