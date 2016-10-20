@@ -75,7 +75,9 @@ def payload_check():
     app.logger.debug('SSO Secret Key: %s', app.config.get('DISCOURSE_SECRET_KEY'))
 
     # Calculate and compare request signature
-    dig = hmac.new(app.config.get('DISCOURSE_SECRET_KEY', ''), payload, hashlib.sha256).hexdigest()
+    dig = hmac.new(app.config.get('DISCOURSE_SECRET_KEY', '').encode('utf-8'),
+                   payload.encode('utf-8'),
+                   hashlib.sha256).hexdigest()
     app.logger.debug('Calculated hash: %s', dig)
 
     if dig != signature:
@@ -148,7 +150,9 @@ def user_auth():
     app.logger.debug('URLEnc query string to return: %s', query_urlenc)
 
     # Generate signature for response
-    sig = hmac.new(app.config.get('DISCOURSE_SECRET_KEY'), query_b64, hashlib.sha256).hexdigest()
+    sig = hmac.new(app.config.get('DISCOURSE_SECRET_KEY').encode('utf-8'),
+                   query_b64.encode('utf-8'),
+                   hashlib.sha256).hexdigest()
     app.logger.debug('Signature: %s', sig)
 
     # Build redirect URL
