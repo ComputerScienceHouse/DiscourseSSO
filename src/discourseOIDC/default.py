@@ -33,6 +33,6 @@ class Config(object):
     DISCOURSE_USER_MAP = {
         'name': ['givenName', 'sn'],
         'username': 'preferred_username',
-        'external_id': 'uuid',
+        'external_id': 'sub',
         'email': 'email'
     }

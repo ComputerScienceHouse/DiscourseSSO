@@ -27,6 +27,7 @@ import base64
 import hashlib
 import hmac
 import requests
+import json
 from urllib.parse import quote
 
 # Disable SSL certificate verification warning
@@ -52,6 +53,11 @@ auth = OIDCAuthentication(app,
 
 @app.route('/')
 def index():
+    """
+    If a user tries to access this application directly,
+    just redirect them to Discourse.
+    :return: Redirect to the configurated DISCOURSE_URL
+    """
     return redirect(app.config.get('DISCOURSE_URL'), 302)
 
 
@@ -59,7 +65,7 @@ def index():
 def payload_check():
     """
     Verify the payload and signature coming from a Discourse server and if
-    correct redirect to the authentication page
+    correct redirect to the authentication page.
     :return: The redirection page to the authentication page
     """
 
@@ -85,7 +91,7 @@ def payload_check():
 
     # Decode the payload and store in session
     decoded_msg = base64.b64decode(payload).decode('utf-8')
-    session['nonce'] = decoded_msg
+    session['discourse_nonce'] = decoded_msg  # This can't just be 'nonce' as Flask-pyoidc will steamroll it
 
     # Redirect to authorization endpoint
     return redirect(url_for('user_auth'))
@@ -95,14 +101,14 @@ def payload_check():
 @auth.oidc_auth
 def user_auth():
     """
-    Read the user attributes provided by the application server (generally
-    it is apache httpd) as environment variables and create the payload to
-    send to discourse
+    Read the user attributes provided by Flask-pyoidc and
+    create the payload to send to Discourse.
     :return: The redirection page to Discourse
     """
 
     # Check to make sure we have a valid session
-    if 'nonce' not in session:
+    if 'discourse_nonce' not in session:
+        app.logger.debug('Discourse nonce not found in session')
         abort(403)
 
     attribute_map = app.config.get('DISCOURSE_USER_MAP')
@@ -110,13 +116,14 @@ def user_auth():
     # External ID
     external_id = session['userinfo'].get(attribute_map['external_id'], '')
     if not external_id:
+        app.logger.debug('External ID not found in userinfo: ' + json.dumps(session['userinfo']))
         abort(403)
 
     # Display name
     name_list = []
     for name_to_map in attribute_map['name']:
-        if request.environ.get(name_to_map):
-            name_list.append(request.environ.get(name_to_map))
+        if session['userinfo'].get(name_to_map):
+            name_list.append(session['userinfo'].get(name_to_map))
     name = ' '.join(name_list)
 
     # Username
@@ -129,12 +136,13 @@ def user_auth():
     if app.config.get('SSO_EMAIL_OVERRIDE', False):
         email = username + "@" + session['userinfo'].get('SSO_EMAIL_OVERRIDE_DOMAIN')
     if not email:
+        app.logger.debug('Email not found in userinfo and override not enabled: ' + json.dumps(session['userinfo']))
         abort(403)
 
     app.logger.debug('Authenticating "%s" with username "%s" and email "%s"', name, username, email)
 
     # Build response
-    query = (session['nonce'] +
+    query = (session['discourse_nonce'] +
              '&name=' + name +
              '&username=' + username +
              '&email=' + quote(email) +
@@ -168,4 +176,8 @@ def user_auth():
 @app.route('/logout')
 @auth.oidc_logout
 def logout():
+    """
+    Handle logging a user out. Flask-pyoidc does the heavy lifting here.
+    :return: Redirect to the application index
+    """
     return redirect(url_for('index'), 302)

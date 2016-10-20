@@ -32,6 +32,10 @@ DISCOURSE_URL = os.environ.get('SSO_DISCOURSE_URL', 'http://discuss.example.com'
 # Secret key shared with the Discourse server
 DISCOURSE_SECRET_KEY = os.environ.get('SSO_DISCOURSE_SECRET', '')
 
+# Override emails returned from the IdP to <username>@<SSO_EMAIL_OVERRIDE_DOMAIN>
+SSO_EMAIL_OVERRIDE = True if os.environ.get('SSO_EMAIL_OVERRIDE', 'false') == 'true' else False
+SSO_EMAIL_OVERRIDE_DOMAIN = os.environ.get('SSO_EMAIL_OVERRIDE_DOMAIN', '')
+
 # Attribute to read from the environment after user validation
 DISCOURSE_USER_MAP = json.loads(os.environ.get('SSO_DISCOURSE_USER_MAP',
                                                '{"name": ["givenName", "sn"], "username": "preferred_username", \

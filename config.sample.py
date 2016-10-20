@@ -29,6 +29,10 @@ DISCOURSE_URL = 'http://discuss.example.com'
 # Secret key shared with the Discourse server
 DISCOURSE_SECRET_KEY = ''
 
+# Override emails returned from the IdP to <username>@<SSO_EMAIL_OVERRIDE_DOMAIN>
+SSO_EMAIL_OVERRIDE = False
+SSO_EMAIL_OVERRIDE_DOMAIN = ''
+
 # Attribute to read from the environment after user validation
 DISCOURSE_USER_MAP = {
     "name": ["givenName", "sn"],
