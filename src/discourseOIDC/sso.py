@@ -134,7 +134,7 @@ def user_auth():
     # Email
     email = session['userinfo'].get(attribute_map['email'], '')
     if app.config.get('SSO_EMAIL_OVERRIDE', False):
-        email = username + "@" + session['userinfo'].get('SSO_EMAIL_OVERRIDE_DOMAIN')
+        email = username + "@" + app.config.get('SSO_EMAIL_OVERRIDE_DOMAIN')
     if not email:
         app.logger.debug('Email not found in userinfo and override not enabled: ' + json.dumps(session['userinfo']))
         abort(403)
