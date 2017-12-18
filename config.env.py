@@ -14,7 +14,7 @@ SECRET_KEY = os.environ.get('SSO_SECRET_KEY', 'thisisntverysecure')
 # OpenID Connect Configuration #
 ################################
 
-OIDC_ISSUER = os.environ.get('SSO_OIDC_ISSUER', 'https://sso.csh.rit.edu/realms/csh')
+OIDC_ISSUER = os.environ.get('SSO_OIDC_ISSUER', 'https://sso.csh.rit.edu/auth/realms/csh')
 OIDC_CLIENT_CONFIG = {
     'client_id': os.environ.get('SSO_OIDC_CLIENT_ID', 'discourse'),
     'client_secret': os.environ.get('SSO_OIDC_CLIENT_SECRET', ''),
