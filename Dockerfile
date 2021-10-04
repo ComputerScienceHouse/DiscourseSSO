@@ -3,7 +3,7 @@ FROM python:3-alpine
 MAINTAINER Steven Mirabito (smirabito@csh.rit.edu)
 
 # Install additional system packages required for certain python dependencies
-RUN apk add --no-cache libffi-dev python-dev gcc musl-dev openssl-dev ca-certificates && \
+RUN apk add --no-cache libffi-dev python3-dev gcc musl-dev openssl-dev ca-certificates && \
 update-ca-certificates
 
 # Add application user
