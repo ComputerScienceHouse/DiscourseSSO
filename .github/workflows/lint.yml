@@ -1,0 +1,27 @@
+name: lint
+on:
+  push:
+    branches:
+      - '*'
+    tags:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run Lint
+    container:
+      image: 'python:3-buster'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          pip install pylint-quotes~=0.2.1 pylint~=2.7.2
+          pip install -r requirements.txt
+      - name: Lint source
+        run: |
+          pylint src *.py

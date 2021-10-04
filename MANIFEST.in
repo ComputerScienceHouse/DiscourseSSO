@@ -20,3 +20,4 @@ include tox.ini .travis.yml .scrutinizer.yml
 include DiscourseOIDC.py
 
 global-exclude *.py[co] __pycache__ *.so *.pyd
+include *.py Dockerfile .dockerignore
