@@ -21,6 +21,7 @@ for the most significant values look at the sso/default.py file
 
 from flask import abort, Flask, redirect, request, url_for, session
 from flask_pyoidc.flask_pyoidc import OIDCAuthentication
+from flask_pyoidc.provider_configuration import ProviderConfiguration, ClientMetadata
 
 import os
 import base64
@@ -46,9 +47,9 @@ else:
 app.config.from_envvar('DISCOURSE_SSO_CONFIG', True)
 
 # Initialize OpenID Connect extension
-auth = OIDCAuthentication(app,
-                          issuer=app.config['OIDC_ISSUER'],
-                          client_registration_info=app.config['OIDC_CLIENT_CONFIG'])
+client_metadata = ClientMetadata(app.config['OIDC_CLIENT_CONFIG']['client_id'], client_secret=app.config['OIDC_CLIENT_CONFIG']['client_secret'])
+config = ProviderConfiguration(issuer=app.config['OIDC_ISSUER'], client_metadata=client_metadata)
+auth = OIDCAuthentication({'default': config}, app)
 
 
 @app.route('/')
@@ -98,7 +99,7 @@ def payload_check():
 
 
 @app.route('/sso/auth')
-@auth.oidc_auth
+@auth.oidc_auth('default')
 def user_auth():
     """
     Read the user attributes provided by Flask-pyoidc and
