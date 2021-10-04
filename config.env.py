@@ -1,10 +1,11 @@
-import os, json
+import os
+import json
 
 #######################
 # Flask Configuration #
 #######################
 
-DEBUG = True if os.environ.get('SSO_DEBUG', 'false') == 'true' else False
+DEBUG = os.environ.get('SSO_DEBUG', 'false') == 'true'
 IP = os.environ.get('SSO_IP', '0.0.0.0')
 PORT = int(os.environ.get('SSO_PORT', '8080'))
 SERVER_NAME = os.environ.get('SSO_SERVER_NAME', 'discourse-sso.csh.rit.edu')
@@ -33,7 +34,7 @@ DISCOURSE_URL = os.environ.get('SSO_DISCOURSE_URL', 'http://discuss.example.com'
 DISCOURSE_SECRET_KEY = os.environ.get('SSO_DISCOURSE_SECRET', '')
 
 # Override emails returned from the IdP to <username>@<SSO_EMAIL_OVERRIDE_DOMAIN>
-SSO_EMAIL_OVERRIDE = True if os.environ.get('SSO_EMAIL_OVERRIDE', 'false') == 'true' else False
+SSO_EMAIL_OVERRIDE = os.environ.get('SSO_EMAIL_OVERRIDE', 'false') == 'true'
 SSO_EMAIL_OVERRIDE_DOMAIN = os.environ.get('SSO_EMAIL_OVERRIDE_DOMAIN', '')
 
 # Attribute to read from the environment after user validation

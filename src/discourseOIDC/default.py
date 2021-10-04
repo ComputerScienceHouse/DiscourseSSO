@@ -18,7 +18,7 @@ Default configuration for FLASK app
 """
 
 
-class Config(object):
+class Config:
     DEBUG = False
     TESTING = False
     SECRET_KEY = 'vWr,-n7NlGPv9SyIGBMr4ehwThUY92DpWPqIuh2NP_6Of-_8b3,h'

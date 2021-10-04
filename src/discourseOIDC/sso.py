@@ -19,17 +19,18 @@ The configuration file is defined with the variable "DISCOURSE_SSO_CONFIG",
 for the most significant values look at the sso/default.py file
 """
 
-from flask import abort, Flask, redirect, request, url_for, session
-from flask_pyoidc.flask_pyoidc import OIDCAuthentication
-from flask_pyoidc.provider_configuration import ProviderConfiguration, ClientMetadata
-
 import os
 import base64
 import hashlib
 import hmac
-import requests
 import json
 from urllib.parse import quote
+
+from flask import abort, Flask, redirect, request, url_for, session
+from flask_pyoidc.flask_pyoidc import OIDCAuthentication
+from flask_pyoidc.provider_configuration import \
+    ProviderConfiguration, ClientMetadata
+import requests
 
 # Disable SSL certificate verification warning
 requests.packages.urllib3.disable_warnings()
@@ -39,16 +40,22 @@ app = Flask(__name__)
 # Load configuration
 app.config.from_object('discourseOIDC.default.Config')
 
-if os.path.exists(os.path.join(os.getcwd(), "config.py")):
-    app.config.from_pyfile(os.path.join(os.getcwd(), "config.py"))
+if os.path.exists(os.path.join(os.getcwd(), 'config.py')):
+    app.config.from_pyfile(os.path.join(os.getcwd(), 'config.py'))
 else:
-    app.config.from_pyfile(os.path.join(os.getcwd(), "config.env.py"))
+    app.config.from_pyfile(os.path.join(os.getcwd(), 'config.env.py'))
 
 app.config.from_envvar('DISCOURSE_SSO_CONFIG', True)
 
 # Initialize OpenID Connect extension
-client_metadata = ClientMetadata(app.config['OIDC_CLIENT_CONFIG']['client_id'], client_secret=app.config['OIDC_CLIENT_CONFIG']['client_secret'])
-config = ProviderConfiguration(issuer=app.config['OIDC_ISSUER'], client_metadata=client_metadata)
+client_metadata = ClientMetadata(
+    app.config['OIDC_CLIENT_CONFIG']['client_id'],
+    client_secret=app.config['OIDC_CLIENT_CONFIG']['client_secret']
+)
+config = ProviderConfiguration(
+    issuer=app.config['OIDC_ISSUER'],
+    client_metadata=client_metadata
+)
 auth = OIDCAuthentication({'default': config}, app)
 
 
@@ -77,9 +84,15 @@ def payload_check():
     if not payload or not signature:
         abort(400)
 
-    app.logger.debug('Request to login with payload="%s" signature="%s"', payload, signature)
+    app.logger.debug(
+        'Request to login with payload="%s" signature="%s"',
+        payload, signature
+    )
     app.logger.debug('Session Secret Key: %s', app.secret_key)
-    app.logger.debug('SSO Secret Key: %s', app.config.get('DISCOURSE_SECRET_KEY'))
+    app.logger.debug(
+        'SSO Secret Key: %s',
+        app.config.get('DISCOURSE_SECRET_KEY')
+    )
 
     # Calculate and compare request signature
     dig = hmac.new(app.config.get('DISCOURSE_SECRET_KEY', '').encode('utf-8'),
@@ -92,7 +105,8 @@ def payload_check():
 
     # Decode the payload and store in session
     decoded_msg = base64.b64decode(payload).decode('utf-8')
-    session['discourse_nonce'] = decoded_msg  # This can't just be 'nonce' as Flask-pyoidc will steamroll it
+    # This can't just be 'nonce' as Flask-pyoidc will steamroll it
+    session['discourse_nonce'] = decoded_msg
 
     # Redirect to authorization endpoint
     return redirect(url_for('user_auth'))
@@ -117,7 +131,10 @@ def user_auth():
     # External ID
     external_id = session['userinfo'].get(attribute_map['external_id'], '')
     if not external_id:
-        app.logger.debug('External ID not found in userinfo: ' + json.dumps(session['userinfo']))
+        app.logger.debug(
+            'External ID not found in userinfo: ' +
+            json.dumps(session['userinfo'])
+        )
         abort(403)
 
     # Display name
@@ -130,17 +147,23 @@ def user_auth():
     # Username
     username = session['userinfo'].get(attribute_map['username'], '')
     if not username:
-        username = (name.replace(' ', '') + "_" + external_id[0:4])
+        username = (name.replace(' ', '') + '_' + external_id[0:4])
 
     # Email
     email = session['userinfo'].get(attribute_map['email'], '')
     if app.config.get('SSO_EMAIL_OVERRIDE', False):
-        email = username + "@" + app.config.get('SSO_EMAIL_OVERRIDE_DOMAIN')
+        email = username + '@' + app.config.get('SSO_EMAIL_OVERRIDE_DOMAIN')
     if not email:
-        app.logger.debug('Email not found in userinfo and override not enabled: ' + json.dumps(session['userinfo']))
+        app.logger.debug(
+            'Email not found in userinfo and override not enabled: ' +
+            json.dumps(session['userinfo'])
+        )
         abort(403)
 
-    app.logger.debug('Authenticating "%s" with username "%s" and email "%s"', name, username, email)
+    app.logger.debug(
+        'Authenticating "%s" with username "%s" and email "%s"',
+        name, username, email
+    )
 
     # Build response
     query = (session['discourse_nonce'] +

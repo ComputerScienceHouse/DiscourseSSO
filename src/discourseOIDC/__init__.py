@@ -1,3 +1,5 @@
+# pylint: disable=invalid-name
+
 """
   Copyright 2015 INFN (Italy)
 
