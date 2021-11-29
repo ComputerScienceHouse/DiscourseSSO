@@ -40,4 +40,4 @@ SSO_EMAIL_OVERRIDE_DOMAIN = os.environ.get('SSO_EMAIL_OVERRIDE_DOMAIN', '')
 # Attribute to read from the environment after user validation
 DISCOURSE_USER_MAP = json.loads(os.environ.get('SSO_DISCOURSE_USER_MAP',
                                                '{"name": ["givenName", "sn"], "username": "preferred_username", \
-                                               "external_id": "sub", "email": "email"}'))
+                                               "external_id": "sub", "email": "email", "groups": "groups"}'))
