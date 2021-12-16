@@ -149,6 +149,11 @@ def user_auth():
     if not username:
         username = (name.replace(' ', '') + '_' + external_id[0:4])
 
+    # Groups
+    groups = None
+    if 'groups' in attribute_map:
+        groups = session['userinfo'].get(attribute_map['groups'], [])
+
     # Email
     email = session['userinfo'].get(attribute_map['email'], '')
     if app.config.get('SSO_EMAIL_OVERRIDE', False):
@@ -167,10 +172,12 @@ def user_auth():
 
     # Build response
     query = (session['discourse_nonce'] +
-             '&name=' + name +
-             '&username=' + username +
+             '&name=' + quote(name) +
+             '&username=' + quote(username) +
              '&email=' + quote(email) +
-             '&external_id=' + external_id)
+             '&external_id=' + quote(external_id))
+    if groups is not None:
+        query += '&groups=' + quote(','.join(groups))
     app.logger.debug('Query string to return: %s', query)
 
     # Encode response
