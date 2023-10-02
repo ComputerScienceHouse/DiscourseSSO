@@ -153,7 +153,7 @@ def user_auth():
     groups = None
     if 'groups' in attribute_map:
         groups = session['userinfo'].get(attribute_map['groups'], [])
-        groups = [group.replace('/', '') for group in groups]
+        groups = [group.split('/')[-1] for group in groups]
 
     # Email
     email = session['userinfo'].get(attribute_map['email'], '')
